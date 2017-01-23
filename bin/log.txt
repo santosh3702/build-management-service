@@ -1,0 +1,10 @@
+:clean UP-TO-DATE
+:processResources
+:findMainClass
+:bootRepackage
+:compileTestJava
+:testClasses
+2017-01-23 11:51:06.740  INFO 27612 --- [       Thread-4] o.s.w.c.s.GenericWebApplicationContext   : Closing org.springframework.web.context.support.GenericWebApplicationContext@6150624c: startup date [Mon Jan 23 11:51:04 IST 2017]; root of context hierarchy
+:build
+BUILD SUCCESSFUL
+Total time: 10.879 secs
