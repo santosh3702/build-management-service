@@ -20,9 +20,12 @@ import org.springframework.util.ResourceUtils;
 import com.build.model.BuildServiceRequest;
 import com.build.model.BuildServiceResponse;
 
+
+
 @Component
 public class BuildServiceHelper {
 
+	private final String LOCALREPO = "D:\\LocalRepo\\";
 	
 	private static File getEmptyFile(File file) throws IOException {
 		FileOutputStream writer = new FileOutputStream(file);
@@ -35,14 +38,14 @@ public class BuildServiceHelper {
 		BuildServiceResponse buildServiceResponse = new BuildServiceResponse();
 		File path = null;
 		try {
-			path = getLocalFolder();
+			path = getLocalFolder(request.getProjectName());
 			Git.cloneRepository()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(request.getUser(), request.getPassword()))
 					.setURI(request.getUrl()).setDirectory(path).setBranch(request.getBranch()).call().close();
 			
-			buildGradleProject();
-			createBuildServiceResponse(buildServiceResponse);
+			buildGradleProject(LOCALREPO+request.getProjectName());
+			createBuildServiceResponse(LOCALREPO+request.getProjectName(),buildServiceResponse);
 		} catch (Exception e) {
 			e.printStackTrace();
 			buildServiceResponse.setStatus("FAIL");
@@ -52,12 +55,15 @@ public class BuildServiceHelper {
 		return buildServiceResponse;
 	}
 
-	private void createBuildServiceResponse(BuildServiceResponse buildServiceResponse) throws FileNotFoundException, IOException {
-		File logFile = ResourceUtils.getFile("classpath:log.txt");
+	private void createBuildServiceResponse(String path, BuildServiceResponse buildServiceResponse) throws FileNotFoundException, IOException {
+		//File logFile = ResourceUtils.getFile(path:log.txt");"
+				File logFile = new File(path+"\\log.txt");
+				/*if(!logFile.exists()){
+					logFile.createNewFile();	
+				}*/
 		boolean buildStatus = false;
 		String buildLog = "";
 		try {
-		    @SuppressWarnings("resource")
 			Scanner scanner = new Scanner(logFile);
 		    while (scanner.hasNextLine()) {
 		        String line = scanner.nextLine();
@@ -67,6 +73,7 @@ public class BuildServiceHelper {
 		            buildStatus = true;		       
 		        }
 		    }
+		    scanner.close();
 		} catch(FileNotFoundException e) { 
 		   e.printStackTrace();
 		}
@@ -79,11 +86,13 @@ public class BuildServiceHelper {
 		
 	}
 
-	private void buildGradleProject() throws Exception {
-		System.out.println("buildProject build process start");
+	private void buildGradleProject(String path) throws Exception {
+		System.out.println("buildProject build process start"+path);
 		Runtime runtime = Runtime.getRuntime();
-		Process process = runtime.exec("cmd /c  cd D:\\LocalRepo && gradle clean build");
-		writeLogs(process);
+		Process process = runtime.exec("cmd /c  cd "+path+" && gradle build >>log.txt");
+		//writeLogs(process);
+		process.waitFor();
+		System.out.println("BUILD DONE!");
 		process.destroy();
 		
 	}
@@ -97,11 +106,15 @@ public class BuildServiceHelper {
 		InputStreamReader isr = new InputStreamReader(inputStream);
 		BufferedReader br = new BufferedReader(isr);
 		try {
-			while ((br.readLine()) != null) {
-				String str = br.readLine();
+			while (br.read()!= -1) {
+				char str = (char) br.read();
 				System.out.println(str);
-        		bw.write(str);
-				bw.newLine();
+				/*if(str!= null){
+					System.out.println(str);
+	        		bw.write(str);
+					bw.newLine();
+				}*/
+				
 			}
 		} catch (IOException e) {
 			
@@ -112,15 +125,16 @@ public class BuildServiceHelper {
 		System.out.println("writeLogs Complete ====");
 	}
 
-	private File getLocalFolder() throws IOException {
-		File file = new File("D:\\LocalRepo");
+	private File getLocalFolder(String projectName) throws IOException {
+		File file = new File(LOCALREPO+projectName);
+		//File file = new File("D:\\LocalRepo");
 		if (file.exists()) {
 			FileUtils.cleanDirectory(file);
 		}
 		if (file.mkdir()) {
 			System.out.println("Directory is created!");
 		} else {
-			System.out.println("Failed to create directory!");
+			System.out.println("Directory exhist!");
 		}
 
 		return file;

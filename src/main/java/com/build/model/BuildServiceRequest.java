@@ -2,7 +2,7 @@ package com.build.model;
 
 public class BuildServiceRequest {
 
-
+	private String projectName;
 	private String url;
 	private String user;
 	private String password;
@@ -40,10 +40,20 @@ public class BuildServiceRequest {
 	}
 
 	private String branch;
+	
+
 	@Override
 	public String toString() {
-		return "BuildServiceRequest [url=" + url + ", user=" + user + ", password=" + password + ", branch=" + branch
-				+ "]";
+		return "BuildServiceRequest [projectName=" + projectName + ", url=" + url + ", user=" + user + ", password="
+				+ password + ", branch=" + branch + "]";
+	}
+
+	public String getProjectName() {
+		return projectName;
+	}
+
+	public void setProjectName(String projectName) {
+		this.projectName = projectName;
 	}
 
 }
